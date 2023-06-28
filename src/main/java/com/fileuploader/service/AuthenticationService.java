@@ -2,6 +2,8 @@ package com.fileuploader.service;
 
 import com.fileuploader.dto.UserDto;
 import com.fileuploader.entity.User;
+import com.fileuploader.exception.InternalServerException;
+import com.fileuploader.exception.InvalidParameterException;
 import com.fileuploader.repository.UserRepository;
 import jakarta.jws.soap.SOAPBinding;
 import lombok.extern.log4j.Log4j2;
@@ -17,7 +19,7 @@ public class AuthenticationService {
     @Autowired
     private UserRepository userRepository;
 
-    public User signup(UserDto userDto){
+    public User signup(UserDto userDto) throws InternalServerException{
 
         User user = new User();
         user.setUserName(userDto.getUserName());
@@ -28,8 +30,7 @@ public class AuthenticationService {
 
 
         if(!Objects.isNull(user1)){
-            //
-            log.info("User already registered!");
+            throw new InternalServerException("User Already Registered!");
         }
 
         userRepository.save(user);
@@ -37,14 +38,11 @@ public class AuthenticationService {
         return user;
     }
 
-    public User login(UserDto userDto) {
+    public User login(UserDto userDto) throws InvalidParameterException{
         User user = userRepository.findByEmailAndPassword(userDto.getEmail(), userDto.getPassword());
 
         if (Objects.isNull(user)) {
-        //    throw new InvalidParameterException("User Not found!");
-
-            log.info("User Not Registered!");
-            return null;
+            throw new InvalidParameterException("User Not Registered!");
         }
 
         User users1 = new User();

@@ -1,11 +1,15 @@
 package com.fileuploader.controller;
 
+import com.fileuploader.dto.GetFilesDto;
 import com.fileuploader.dto.UserDto;
 import com.fileuploader.entity.Files;
+import com.fileuploader.entity.FilesUrl;
 import com.fileuploader.entity.User;
 import com.fileuploader.exception.InternalServerException;
 import com.fileuploader.exception.InvalidParameterException;
+import com.fileuploader.repository.FileUrlRepository;
 import com.fileuploader.repository.FilesRepository;
+import com.fileuploader.repository.UserRepository;
 import com.fileuploader.service.AuthenticationService;
 import com.fileuploader.service.FileUploadService;
 import lombok.extern.log4j.Log4j2;
@@ -17,10 +21,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @Log4j2
@@ -35,40 +42,47 @@ public class Controller {
     private FilesRepository filesRepository;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private FileUploadService fileUploadService;
+
+    @Autowired
+    private FileUrlRepository fileUrlRepository;
 
     @CrossOrigin
     @GetMapping("test")
-    public String test(){
+    public String test() {
         return "test";
     }
 
     @CrossOrigin("*")
-    @PostMapping(value = "signup" , produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "signup", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public User signup(@RequestBody UserDto userDto) {
 
         return authenticationService.signup(userDto);
     }
 
     @CrossOrigin("*")
-    @PostMapping(value = "login" , produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public User login(@RequestBody UserDto userDto){
+    @PostMapping(value = "login", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public User login(@RequestBody UserDto userDto) {
 
         return authenticationService.login(userDto);
     }
 
     @CrossOrigin("*")
     @PostMapping("/upload")
-    public ResponseEntity<Files> uploadFile(@RequestParam("file") MultipartFile file ,
-                                                         @RequestParam("senderId") Long senderId
+    public ResponseEntity<Files> uploadFile(@RequestParam("file") MultipartFile file,
+                                            @RequestParam("senderId") Long userId
     ) {
+
+        // TODO: To add authentication user check.
 
         String message = "";
 
         try {
-          //  storageService.store(file , senderId , receiverIds);
 
-            Files files = fileUploadService.uploadFile(file,senderId);
+            Files files = fileUploadService.uploadFile(file, userId);
 
             message = "Uploaded the file successfully: " + file.getOriginalFilename();
             log.info(message);
@@ -76,8 +90,7 @@ public class Controller {
         } catch (Exception e) {
             message = "Could not upload the file: " + file.getOriginalFilename() + "!";
             log.info(message);
-           // return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(null);
-            throw  new InternalServerException(e.getMessage());
+            throw new InternalServerException(e.getMessage());
         }
     }
 
@@ -86,26 +99,60 @@ public class Controller {
     // Api to view the pdf file
 
     public ResponseEntity<byte[]> getFile(@PathVariable String id) {
+
         Optional<Files> files = filesRepository.findById(id);
 
 
-        if(files.isEmpty()){
+        if (files.isEmpty()) {
             throw new InvalidParameterException("File Not Found!");
         }
 
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + files.get().getName() + "\"")
+                .body(files.get().getData());
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.set("Content-Disposition", "inline; filename=\"" + files.get().getName() + "\"");
-        headers.setContentLength(files.get().getData().length);
-
-        return new ResponseEntity<>(files.get().getData(), headers, HttpStatus.OK);
     }
 
+    @CrossOrigin("*")
+    @DeleteMapping("file")
+    public ResponseEntity<Files> deleteFile(@RequestParam String fileId , @RequestParam Long userId) {
 
 
+        Optional<Files> files = filesRepository.findById(fileId);
+        Optional<User> user = userRepository.findById(userId);
 
+        if (user.isEmpty()) {
+            throw new InvalidParameterException("Invalid User!");
+        }
 
+        if (files.isEmpty()) {
+            throw new InvalidParameterException("File Not Found!");
+        }
+
+        filesRepository.deleteById(fileId);
+
+        return ResponseEntity.ok(files.get());
+
+    }
+
+    @CrossOrigin("*")
+    @GetMapping("uploadedFiles")
+    public List<GetFilesDto> getUploadedFiles(@RequestParam Long userId){
+
+        List<FilesUrl> uploadedFiles = fileUrlRepository.findAllByUserId(userId);
+
+        List<GetFilesDto> dtoList = uploadedFiles.stream()
+                .map(file -> {
+                    GetFilesDto dto = new GetFilesDto();
+                    dto.setFileName(file.getFileName());
+                    dto.setFileUrl(file.getUrl());
+                    dto.setFileId(file.getFileId());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
+        return dtoList;
+    }
 
 
 }

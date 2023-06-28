@@ -1,6 +1,8 @@
 package com.fileuploader.service;
 
 import com.fileuploader.entity.Files;
+import com.fileuploader.entity.FilesUrl;
+import com.fileuploader.repository.FileUrlRepository;
 import com.fileuploader.repository.FilesRepository;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +20,10 @@ public class FileUploadService {
     @Autowired
     private FilesRepository filesRepository;
 
-    public Files uploadFile(MultipartFile file , Long senderId ) throws IOException {
+    @Autowired
+    private FileUrlRepository fileUrlRepository;
+
+    public Files uploadFile(MultipartFile file , Long userId ) throws IOException {
 
         String fileName = StringUtils.cleanPath(file.getOriginalFilename());
 
@@ -29,6 +34,7 @@ public class FileUploadService {
         files.setName(fileName);
         files.setType(file.getContentType());
         files.setData(fileBytes);
+        files.setUserId(userId);
 
         Files savedFile = filesRepository.save(files);
 
@@ -40,6 +46,15 @@ public class FileUploadService {
                 .path(id.toString())
                 .toUriString();
         savedFile.setUrl(fileDownloadUri);
+
+        FilesUrl filesUrl = new FilesUrl();
+        filesUrl.setUrl(fileDownloadUri);
+        filesUrl.setFileId(id);
+        filesUrl.setUserId(userId);
+        filesUrl.setFileName(fileName);
+
+
+        fileUrlRepository.save(filesUrl);
 
         filesRepository.save(files);
 

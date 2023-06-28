@@ -22,9 +22,13 @@ public class Files {
     private String type;
 
     @Lob
+    @Basic(fetch = FetchType.EAGER)
     @Column(name = "data")
     private byte[] data;
 
     @Column(name = "url")
     private String url;
+
+    @Column(name = "uploaded_by")
+    private Long userId;
 }

@@ -1,15 +1,15 @@
 package com.fileuploader.repository;
 
-import com.fileuploader.entity.Files;
+import com.fileuploader.entity.FilesUrl;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface FilesRepository extends JpaRepository<Files, String> {
+public interface FileUrlRepository extends JpaRepository<FilesUrl, Long> {
 
-    List<Files> findAllByUserId(Long userId);
+    List<FilesUrl> findAllByUserId(Long userId);
 
 
 }

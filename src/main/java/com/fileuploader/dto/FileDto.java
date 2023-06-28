@@ -1,4 +1,4 @@
-package com.fileuploader.controller;
+package com.fileuploader.dto;
 
 import lombok.Getter;
 import lombok.Setter;

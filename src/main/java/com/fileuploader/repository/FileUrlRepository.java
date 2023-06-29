@@ -14,10 +14,7 @@ public interface FileUrlRepository extends JpaRepository<FilesUrl, Long> {
 
     FilesUrl findByFileId(String fileId);
 
-
     List<FilesUrl>  findAllByExpirationDateBefore(LocalDateTime date);
-
-    void deleteByFileId(String id);
 
 
 }

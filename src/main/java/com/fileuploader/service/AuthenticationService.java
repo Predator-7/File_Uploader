@@ -5,12 +5,12 @@ import com.fileuploader.entity.User;
 import com.fileuploader.exception.InternalServerException;
 import com.fileuploader.exception.InvalidParameterException;
 import com.fileuploader.repository.UserRepository;
-import jakarta.jws.soap.SOAPBinding;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @Log4j2
@@ -56,6 +56,17 @@ public class AuthenticationService {
         log.info("User " + user.getUserName() +  " Successfully logged in!");
 
         return users1;
+    }
+
+    public boolean isUserValid(Long id){
+
+        Optional<User> user = userRepository.findById(id);
+
+        if(user.isEmpty()){
+            return false;
+        }
+
+        return true;
     }
 
 

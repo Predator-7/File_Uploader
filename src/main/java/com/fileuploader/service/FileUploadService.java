@@ -37,7 +37,9 @@ public class FileUploadService {
 
     private Integer expiryRange = 3;
 
-    public Files uploadFile(MultipartFile file , Long userId , String fileName) throws IOException {
+    public Files uploadFile(MultipartFile file , Long userId) throws IOException {
+
+        String fileName = StringUtils.cleanPath(file.getOriginalFilename());
 
         LocalDateTime expirationDate = LocalDateTime.now().plusDays(expiryRange);
 
@@ -53,12 +55,16 @@ public class FileUploadService {
 
         String id = savedFile.getId();
 
+        String fileExtension = StringUtils.getFilenameExtension(savedFile.getName());
+        log.info(fileExtension);
+
         String fileDownloadUri = ServletUriComponentsBuilder
                 .fromCurrentContextPath()
                 .path("api/files/")
                 .path(id.toString())
                 .toUriString();
         savedFile.setUrl(fileDownloadUri);
+
 
         FilesUrl filesUrl = new FilesUrl();
         filesUrl.setUrl(fileDownloadUri);
@@ -123,10 +129,9 @@ public class FileUploadService {
 
     public void deleteExpiredFiles() {
         List<FilesUrl> expiredFiles = fileUrlRepository.findAllByExpirationDateBefore(LocalDateTime.now());
-        //  filesRepository.findAllByExpirationDateBefore(LocalDateTime.now());
+
         for (FilesUrl expiredFile : expiredFiles) {
-            // Delete the file from storage (implementation not provided)
-         //   deleteFileFromStorage(expiredFile);
+
 
             Long userId = expiredFile.getUserId();
             String fileId = expiredFile.getFileId();
@@ -135,6 +140,18 @@ public class FileUploadService {
             log.info(expiredFile.getFileName() + " is expired!");
         }
     }
+
+    public Files getFile(String id){
+        Optional<Files> files = filesRepository.findById(id);
+
+
+        if (files.isEmpty()) {
+            throw new InvalidParameterException("File Not Found!");
+        }
+        return files.get();
+    }
+
+
 
 
 }

@@ -120,6 +120,8 @@ public class Controller {
 
         Optional<Files> files = filesRepository.findById(fileId);
         Optional<User> user = userRepository.findById(userId);
+        FilesUrl filesUrl = fileUrlRepository.findByFileId(fileId);
+
 
         if (user.isEmpty()) {
             throw new InvalidParameterException("Invalid User!");
@@ -129,7 +131,12 @@ public class Controller {
             throw new InvalidParameterException("File Not Found!");
         }
 
+
         filesRepository.deleteById(fileId);
+
+        fileUrlRepository.delete(filesUrl);
+
+        log.info("Deleted Successfully!");
 
         return ResponseEntity.ok(files.get());
 

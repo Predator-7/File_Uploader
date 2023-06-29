@@ -11,5 +11,6 @@ public interface FilesRepository extends JpaRepository<Files, String> {
 
     List<Files> findAllByUserId(Long userId);
 
+    void deleteById(String id);
 
 }

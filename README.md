@@ -14,6 +14,7 @@ Welcome to the File Sharing Platform documentation! This guide will help you und
   - Downloading Files
   - Sharing Files
 - Tech Stack Used
+- Links
 - Contributor
 
 
@@ -187,9 +188,11 @@ The project utilizes the following technologies:
 
 ## Links
 
-- **Website**: The website is hosted at [https://file-uploader-frontend.onrender.com/](https://file-uploader-frontend.onrender.com/)
+- **Website**: The website is hosted at [https://file-uploader-frontend.onrender.com/](https://file-uploader-frontend.onrender.com/). Visit the link to access the hosted website and explore its features.
 
-By visiting the provided link, you can access the hosted website and explore its features.
+- **Project Report**: For more detailed information about the project, you can refer to the [Project Report](https://docs.google.com/document/d/1HL2935vMeslTru-SUGqUnWHoi5W3eIx7DTs_-7XRp-k/edit?usp=sharing).
+
+Feel free to check out the website and refer to the project report for additional insights into the project.
 
 
 ## Contributor

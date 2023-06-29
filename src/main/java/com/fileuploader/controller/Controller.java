@@ -23,10 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -73,7 +70,8 @@ public class Controller {
     @CrossOrigin("*")
     @PostMapping("/upload")
     public ResponseEntity<Files> uploadFile(@RequestParam("file") MultipartFile file,
-                                            @RequestParam("senderId") Long userId
+                                            @RequestParam("senderId") Long userId ,
+                                            @RequestParam("fileName") String fileName
     ) {
 
         // TODO: To add authentication user check.
@@ -82,7 +80,9 @@ public class Controller {
 
         try {
 
-            Files files = fileUploadService.uploadFile(file, userId);
+            validateFile(file , fileName);
+
+            Files files = fileUploadService.uploadFile(file, userId , fileName);
 
             message = "Uploaded the file successfully: " + file.getOriginalFilename();
             log.info(message);
@@ -117,28 +117,7 @@ public class Controller {
     @DeleteMapping("file")
     public ResponseEntity<Files> deleteFile(@RequestParam String fileId , @RequestParam Long userId) {
 
-
-        Optional<Files> files = filesRepository.findById(fileId);
-        Optional<User> user = userRepository.findById(userId);
-        FilesUrl filesUrl = fileUrlRepository.findByFileId(fileId);
-
-
-        if (user.isEmpty()) {
-            throw new InvalidParameterException("Invalid User!");
-        }
-
-        if (files.isEmpty()) {
-            throw new InvalidParameterException("File Not Found!");
-        }
-
-
-        filesRepository.deleteById(fileId);
-
-        fileUrlRepository.delete(filesUrl);
-
-        log.info("Deleted Successfully!");
-
-        return ResponseEntity.ok(files.get());
+        return ResponseEntity.ok(fileUploadService.deleteFile(fileId,userId));
 
     }
 
@@ -146,19 +125,44 @@ public class Controller {
     @GetMapping("uploadedFiles")
     public List<GetFilesDto> getUploadedFiles(@RequestParam Long userId){
 
-        List<FilesUrl> uploadedFiles = fileUrlRepository.findAllByUserId(userId);
+        return fileUploadService.getUploadedFiles(userId);
+    }
 
-        List<GetFilesDto> dtoList = uploadedFiles.stream()
-                .map(file -> {
-                    GetFilesDto dto = new GetFilesDto();
-                    dto.setFileName(file.getFileName());
-                    dto.setFileUrl(file.getUrl());
-                    dto.setFileId(file.getFileId());
-                    return dto;
-                })
-                .collect(Collectors.toList());
 
-        return dtoList;
+    // Other private validation methods -
+
+    private void validateFile(MultipartFile file , String fileName) {
+        // Validate file extension
+        String originalFilename = file.getOriginalFilename();
+        String fileExtension = getFileExtension(originalFilename);
+        List<String> allowedExtensions = Arrays.asList("jpg", "jpeg", "png" , "pdf"); // Define your allowed file extensions
+        if (!allowedExtensions.contains(fileExtension)) {
+            log.error("Invalid file extension. Only " + allowedExtensions + " files are allowed.");
+            throw new IllegalArgumentException("Invalid file extension. Only " + allowedExtensions + " files are allowed.");
+        }
+
+        // Validate file size
+        long maxSize = 5 * 1024 * 1024;
+        if (file.getSize() > maxSize) {
+            log.error("File size exceeds the limit of " + maxSize + " bytes.");
+            throw new IllegalArgumentException("File size exceeds the limit of " + maxSize + " bytes.");
+        }
+
+
+        // Perform file name sanitization to check the name of file is correct or not.
+        String sanitizedFileName = sanitizeFileName(originalFilename);
+        if (!originalFilename.equals(sanitizedFileName)) {
+            log.error("Invalid file name. Please remove any special characters.");
+            throw new IllegalArgumentException("Invalid file name. Please remove any special characters.");
+        }
+    }
+
+    private String getFileExtension(String filename) {
+        return filename.substring(filename.lastIndexOf(".") + 1);
+    }
+
+    private String sanitizeFileName(String filename) {
+        return filename.replaceAll("[^a-zA-Z0-9.-]", "_");
     }
 
 

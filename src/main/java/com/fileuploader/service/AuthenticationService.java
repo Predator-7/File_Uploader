@@ -30,10 +30,12 @@ public class AuthenticationService {
 
 
         if(!Objects.isNull(user1)){
+            log.error("User Already Registered!");
             throw new InternalServerException("User Already Registered!");
         }
 
         userRepository.save(user);
+        log.info("User " + user.getUserName() +  " Successfully registered!");
 
         return user;
     }
@@ -42,6 +44,7 @@ public class AuthenticationService {
         User user = userRepository.findByEmailAndPassword(userDto.getEmail(), userDto.getPassword());
 
         if (Objects.isNull(user)) {
+            log.error("User Not Registered!");
             throw new InvalidParameterException("User Not Registered!");
         }
 
@@ -49,6 +52,9 @@ public class AuthenticationService {
         users1.setUserName(userDto.getUserName());
         users1.setId(user.getId());
         users1.setEmail(userDto.getEmail());
+
+        log.info("User " + user.getUserName() +  " Successfully logged in!");
+
         return users1;
     }
 

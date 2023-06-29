@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @Entity
@@ -23,5 +25,7 @@ public class FilesUrl {
 
     private String fileName;
 
+    @Column(name = "expiration_date")
+    private LocalDateTime expirationDate;
 
 }

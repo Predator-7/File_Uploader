@@ -1,6 +1,6 @@
 # File Sharing Platform Documentation
 
-Welcome to the File Sharing Platform documentation! This guide will help you understand how to use and contribute to this platform, where authenticated users can upload, view, download, and share files. 
+Welcome to the File Sharing Platform documentation! This guide will help you understand how to use this platform, where authenticated users can upload, view, download, and share files. 
 
 
 ## Table of Contents

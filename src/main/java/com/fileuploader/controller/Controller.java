@@ -57,11 +57,9 @@ public class Controller {
     @CrossOrigin("*")
     @PostMapping("/upload")
     public ResponseEntity<Files> uploadFile(@RequestParam("file") MultipartFile file,
-                                            @RequestParam("senderId") Long userId ,
-                                            @RequestParam("fileName") String fileName
-    ) {
+                                            @RequestParam("senderId") Long userId
 
-        // TODO: To add authentication user check.
+    ) {
 
 
         try {
